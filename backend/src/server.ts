@@ -10,8 +10,28 @@ const app = express()
 
 const PORT = 3001
 
-// Middleware
-app.use(cors())
+
+const allowedOrigins = [
+    "http://localhost:5173",
+    "https://campaign-os.vercel.app",
+    "https://campaignos.billiondollardevs.com",
+  ]
+  
+  app.use(
+    cors({
+      origin: function (origin, callback) {
+
+        if (!origin) return callback(null, true)
+        if (allowedOrigins.includes(origin)) {
+          callback(null, true)
+        } else {
+          callback(new Error("Not allowed by CORS"))
+        }
+      },
+      credentials: true,
+    })
+  )
+
 app.use(express.json())
 
 // Routes
