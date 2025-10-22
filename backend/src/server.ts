@@ -1,0 +1,32 @@
+import express from "express"
+import cors from "cors"
+import campaignRouter from "./routes/campaign.routes.js"
+import authRouter from "./routes/auth.routes.js"
+import postRouter from "./routes/post.routes.js"
+import connectToDatabase from "./database/db.js"
+import { errorHandler } from "./middleware/errorHandler.middleware.js"
+
+const app = express()
+
+const PORT = 3001
+
+// Middleware
+app.use(cors())
+app.use(express.json())
+
+// Routes
+app.use("/api/campaign", campaignRouter)
+app.use("/api/auth", authRouter)
+app.use("/api/post", postRouter)
+
+app.use("/", (req, res) => {
+    res.status(200).json({message: "App is live"})
+})
+
+// Error handling middleware (must be last)
+app.use(errorHandler)
+
+app.listen(PORT, async()=> {
+    console.log(`App is listening on http://localhost:${PORT}`)
+    await connectToDatabase()
+})
