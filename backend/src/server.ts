@@ -4,11 +4,14 @@ import campaignRouter from "./routes/campaign.routes.js"
 import authRouter from "./routes/auth.routes.js"
 import postRouter from "./routes/post.routes.js"
 import connectToDatabase from "./database/db.js"
+import dotenv from "dotenv"
 import { errorHandler } from "./middleware/errorHandler.middleware.js"
+
+dotenv.config()
 
 const app = express()
 
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 
 
 const allowedOrigins = [
