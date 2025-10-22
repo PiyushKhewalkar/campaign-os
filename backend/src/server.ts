@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 3001
 const allowedOrigins = [
     "http://localhost:5173",
     "https://campaign-os.vercel.app",
-    "https://campaignos.billiondollardevs.com",
+    "https://campaign-os.billiondollardevs.com",
   ]
   
   app.use(
