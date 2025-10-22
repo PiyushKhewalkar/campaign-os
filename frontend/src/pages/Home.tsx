@@ -3,11 +3,16 @@ import CampaignList from '../components/CampaignList';
 import Greeting from '@/components/Greeting';
 import { campaignAPI, type Campaign } from '../api';
 import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
+import CalendarPreview from '@/components/CalendarPreview';
+import UniversalHeader from '@/components/UniversalHeader';
 
 const Home: React.FC = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const {user} = useAuth()
 
@@ -42,19 +47,44 @@ const Home: React.FC = () => {
     );
   };
 
+  // Limit campaigns to 5 for home page
+  const limitedCampaigns = campaigns.slice(0, 5);
+  const hasMoreCampaigns = campaigns.length > 5;
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto">
-        <div className="">
+        <div className="space-y-8">
           <Greeting name={user?.email}/>
-          <div className="">
+          
+          {/* Campaigns Section */}
+          <div className="space-y-4">
             <CampaignList 
-              campaigns={campaigns || []} 
+              campaigns={limitedCampaigns} 
               isLoading={isLoading} 
               error={error}
               onCampaignDeleted={handleCampaignDeleted}
               onCampaignUpdated={handleCampaignUpdated}
             />
+            
+            {/* View All Button */}
+            {hasMoreCampaigns && (
+              <div className="flex justify-center">
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate('/campaigns')}
+                  className="w-full sm:w-auto"
+                >
+                  View All Campaigns ({campaigns.length})
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Calendar Preview Section */}
+          <div className="space-y-4">
+            <UniversalHeader heading="Upcoming events" subheading="Your scheduled content calendar" buttonLabel="view full calendar" onButtonClick={() => navigate("/calendar")}/>
+            <CalendarPreview />
           </div>
         </div>
       </div>

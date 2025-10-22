@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { authAPI, getAuthToken, setAuthToken, removeAuthToken, getUserData, setUserData, removeUserData, validateToken, isTokenExpired, type User, type SignupData, type SigninData } from '../api';
+import { authAPI, getAuthToken, setAuthToken, removeAuthToken, getUserData, setUserData, removeUserData, isTokenExpired, type User, type SignupData, type SigninData } from '../api';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { firebaseAuth } from '@/firebase';
 

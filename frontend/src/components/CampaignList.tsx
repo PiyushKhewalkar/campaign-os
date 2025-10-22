@@ -5,6 +5,7 @@ import { campaignAPI } from "../api"
 import type { Campaign } from "../api"
 import { useNavigate } from "react-router-dom"
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react"
+
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -31,6 +32,7 @@ const truncateDescription = (description: string | undefined, maxLength: number 
     if (description.length <= maxLength) return description;
     return description.substring(0, maxLength) + "...";
 };
+
 
 interface CampaignListProps {
     campaigns?: Campaign[];
@@ -118,26 +120,8 @@ const CampaignList = ({ campaigns = [], isLoading = false, error = null, onCampa
                             <div key={campaign._id} className="p-3 rounded-md bg-card min-w-[85%]">
                                 <div className="space-y-2">
                                     <div className="flex justify-between items-center">
-                                    <div className="flex justify-start space-x-2 items-center">
-                                    {campaign.platforms.includes('x') && (
-                                            <div className="bg-black text-white rounded-full p-1">
-                                                <span className="text-xs font-bold">X</span>
-                                            </div>
-                                        )}
-                                        {campaign.platforms.includes('instagram') && (
-                                            <div className="bg-linear-to-r from-purple-500 to-pink-500 text-white rounded-full p-1">
-                                                <span className="text-xs font-bold">IG</span>
-                                            </div>
-                                        )}
-                                        {campaign.platforms.includes('linkedin') && (
-                                            <div className="bg-blue-600 text-white rounded-full p-1">
-                                                <span className="text-xs font-bold">LI</span>
-                                            </div>
-                                        )}
-                                        <h3 className="text-xl font-medium">{campaign.title}</h3>
-                                    </div>
-
-                                <AlertDialog>
+                                        <h3 className="text-xl font-medium">{campaign.title || "untitled"}</h3>
+                                        <AlertDialog>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -181,6 +165,7 @@ const CampaignList = ({ campaigns = [], isLoading = false, error = null, onCampa
                                     </AlertDialogContent>
                                 </AlertDialog>
                                 </div>
+                                
                                 <p className="text-muted-foreground">{truncateDescription(campaign.description)}</p>
                             </div>
                             <div className="space-y-2 my-3">
@@ -218,24 +203,8 @@ const CampaignList = ({ campaigns = [], isLoading = false, error = null, onCampa
                             <div key={campaign._id} className="p-3 rounded-md bg-card">
                                 <div className="space-y-2">
                                     <div className="flex justify-between items-center">
-                                    <div className="flex justify-start space-x-2 items-center">
-                                    {campaign.platforms.includes('x') && (
-                                            <div className="bg-black text-white rounded-full p-1">
-                                                <span className="text-xs font-bold">X</span>
-                                            </div>
-                                        )}
-                                        {campaign.platforms.includes('instagram') && (
-                                            <div className="bg-linear-to-r from-purple-500 to-pink-500 text-white rounded-full p-1">
-                                                <span className="text-xs font-bold">IG</span>
-                                            </div>
-                                        )}
-                                        {campaign.platforms.includes('linkedin') && (
-                                            <div className="bg-blue-600 text-white rounded-full p-1">
-                                                <span className="text-xs font-bold">LI</span>
-                                            </div>
-                                        )}
-                                        <h3 className="text-xl font-medium">{campaign.title}</h3>
-                                    </div>
+                                   {/* Second row: Title */}
+                                <h3 className="text-xl font-medium">{campaign.title}</h3>
 
                                 <AlertDialog>
                                     <DropdownMenu>
@@ -281,6 +250,8 @@ const CampaignList = ({ campaigns = [], isLoading = false, error = null, onCampa
                                     </AlertDialogContent>
                                 </AlertDialog>
                                 </div>
+
+                               
                                 <p className="text-muted-foreground">{truncateDescription(campaign.description)}</p>
                             </div>
                             <div className="space-y-2 my-3">

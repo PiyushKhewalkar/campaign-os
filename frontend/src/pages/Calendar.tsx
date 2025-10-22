@@ -3,17 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import {
   Calendar,
   CalendarCurrentDate,
-  CalendarDayView,
   CalendarMonthView,
   CalendarNextTrigger,
   CalendarPrevTrigger,
   CalendarTodayTrigger,
   CalendarViewTrigger,
   CalendarWeekView,
-  CalendarYearView,
   type CalendarEvent,
 } from '@/components/ui/full-calendar';
-import { type Post } from '@/api';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +19,9 @@ const CalendarPage: React.FC = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const navigate = useNavigate();
 
   // Platform color mapping
@@ -36,9 +36,13 @@ const CalendarPage: React.FC = () => {
     return platformColors[platform.toLowerCase()] || 'default';
   };
 
-  const fetchScheduledPosts = async () => {
+  const fetchScheduledPosts = async (page: number = 1, append: boolean = false) => {
     try {
-      setLoading(true);
+      if (page === 1) {
+        setLoading(true);
+      } else {
+        setIsLoadingMore(true);
+      }
       setError(null);
       
       // Get all scheduled posts directly from the new API endpoint
@@ -46,7 +50,13 @@ const CalendarPage: React.FC = () => {
       const response = await postAPI.getAllScheduledPosts();
       const scheduledPosts = response.posts;
 
-      const calendarEvents: CalendarEvent[] = scheduledPosts.map(post => {
+      // Implement client-side pagination for better performance
+      const ITEMS_PER_PAGE = 20;
+      const startIndex = (page - 1) * ITEMS_PER_PAGE;
+      const endIndex = startIndex + ITEMS_PER_PAGE;
+      const paginatedPosts = scheduledPosts.slice(startIndex, endIndex);
+
+      const calendarEvents: CalendarEvent[] = paginatedPosts.map(post => {
         const scheduledDate = new Date(post.scheduled_on!);
         // normalize to start of day
         scheduledDate.setHours(0,0,0,0);
@@ -59,12 +69,27 @@ const CalendarPage: React.FC = () => {
         };
       });
 
-      setEvents(calendarEvents);
+      if (append) {
+        setEvents(prev => [...prev, ...calendarEvents]);
+      } else {
+        setEvents(calendarEvents);
+      }
+
+      // Check if there are more items
+      setHasMore(endIndex < scheduledPosts.length);
+      setCurrentPage(page);
     } catch (err) {
       console.error('Error fetching scheduled posts:', err);
       setError('Failed to load scheduled posts');
     } finally {
       setLoading(false);
+      setIsLoadingMore(false);
+    }
+  };
+
+  const loadMoreEvents = () => {
+    if (!isLoadingMore && hasMore) {
+      fetchScheduledPosts(currentPage + 1, true);
     }
   };
 
@@ -98,7 +123,7 @@ const CalendarPage: React.FC = () => {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={fetchScheduledPosts} variant="outline">
+            <Button onClick={() => fetchScheduledPosts()} variant="outline">
               Try Again
             </Button>
           </CardContent>
@@ -170,6 +195,27 @@ const CalendarPage: React.FC = () => {
           </Calendar>
         </div>
       </div>
+
+      {/* Load More Button */}
+      {hasMore && (
+        <div className="mt-6 flex justify-center">
+          <Button 
+            onClick={() => loadMoreEvents()}
+            disabled={isLoadingMore}
+            variant="outline"
+            className="w-full sm:w-auto"
+          >
+            {isLoadingMore ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                Loading more events...
+              </>
+            ) : (
+              'Load More Events'
+            )}
+          </Button>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">

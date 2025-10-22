@@ -58,6 +58,19 @@ const CampaignDetails = () => {
     }
 
     const handleSchedulePost = async (date: string) => {
+        // Check if the selected date is beyond campaign end date
+        if (campaign && campaign.endDate) {
+            const selectedDate = new Date(date)
+            const campaignEndDate = new Date(campaign.endDate)
+            selectedDate.setHours(0, 0, 0, 0)
+            campaignEndDate.setHours(0, 0, 0, 0)
+            
+            if (selectedDate > campaignEndDate) {
+                setError("Cannot schedule post beyond campaign end date.")
+                return
+            }
+        }
+
         // optimistic update
         const prevPosts = posts
         const normalizedDate = new Date(date)
@@ -68,6 +81,7 @@ const CampaignDetails = () => {
         try {
             await postAPI.schedulePost(scheduleDialog.postId, date)
             setScheduleDialog({ isOpen: false, postId: "", currentDate: undefined })
+            setError("") // Clear any previous errors
         } catch (error) {
             console.error("Error scheduling post:", error)
             setError("Failed to schedule post")
@@ -345,8 +359,17 @@ const CampaignDetails = () => {
                             value={scheduleDialog.currentDate ? new Date(scheduleDialog.currentDate).toISOString().slice(0, 10) : ""}
                             onChange={(e) => setScheduleDialog((prev: any) => ({ ...prev, currentDate: e.target.value }))}
                             min={new Date().toISOString().slice(0, 10)}
+                            max={campaign?.endDate ? new Date(campaign.endDate).toISOString().slice(0, 10) : undefined}
                             className="w-full px-3 py-2 border rounded-md"
                         />
+                        {campaign?.endDate && (
+                            <p className="text-xs text-muted-foreground">
+                                Campaign ends on {new Date(campaign.endDate).toLocaleDateString()}
+                            </p>
+                        )}
+                        {error && (
+                            <p className="text-sm text-red-500">{error}</p>
+                        )}
                     </div>
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setScheduleDialog({ isOpen: false, postId: "", currentDate: undefined })}>Cancel</AlertDialogCancel>

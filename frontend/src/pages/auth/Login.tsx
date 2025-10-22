@@ -1,4 +1,3 @@
-import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { LoginForm } from "@/components/login-form";
 import { useAuth } from '@/context/AuthContext';

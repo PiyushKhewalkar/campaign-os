@@ -9,14 +9,11 @@ import {
   addMonths,
   addWeeks,
   addYears,
-  differenceInMinutes,
   format,
   getMonth,
   isSameDay,
-  isSameHour,
   isSameMonth,
   isToday,
-  setHours,
   setMonth,
   startOfMonth,
   startOfWeek,
@@ -196,12 +193,15 @@ CalendarViewTrigger.displayName = 'CalendarViewTrigger';
 
 // Simplified per-day list item used by week view (no time slots)
 const DayEventList = ({ events }: { events: CalendarEvent[] }) => {
+  const { onEventClick } = useCalendar();
+  
   return (
     <div className="flex flex-col gap-1">
       {events.map((event) => (
         <div
           key={event.id}
-          className={cn('px-2 py-1 rounded text-xs', dayEventVariants({ variant: event.color }))}
+          className={cn('px-2 py-1 rounded text-xs cursor-pointer hover:opacity-80 transition-opacity', dayEventVariants({ variant: event.color }))}
+          onClick={() => onEventClick?.(event)}
         >
           {event.title}
         </div>
@@ -257,7 +257,7 @@ const CalendarWeekView = () => {
 };
 
 const CalendarMonthView = () => {
-  const { date, view, events, locale } = useCalendar();
+  const { date, view, events, locale, onEventClick } = useCalendar();
 
   const monthDates = useMemo(() => getDaysInMonth(date), [date]);
   const weekDays = useMemo(() => generateWeekdays(locale), [locale]);
@@ -306,7 +306,8 @@ const CalendarMonthView = () => {
                 return (
                   <div
                     key={event.id}
-                    className="px-1 rounded text-sm flex items-center gap-1"
+                    className="px-1 rounded text-sm flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => onEventClick?.(event)}
                   >
                     <div
                       className={cn(
@@ -507,36 +508,6 @@ const CalendarCurrentDate = () => {
   );
 };
 
-const TimeTable = () => {
-  const now = new Date();
-
-  return (
-    <div className="pr-2 w-12">
-      {Array.from(Array(25).keys()).map((hour) => {
-        return (
-          <div
-            className="text-right relative text-xs text-muted-foreground/50 h-20 last:h-0"
-            key={hour}
-          >
-            {now.getHours() === hour && (
-              <div
-                className="absolute z- left-full translate-x-2 w-dvw h-[2px] bg-red-500"
-                style={{
-                  top: `${(now.getMinutes() / 60) * 100}%`,
-                }}
-              >
-                <div className="size-2 rounded-full bg-red-500 absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2"></div>
-              </div>
-            )}
-            <p className="top-0 -translate-y-1/2">
-              {hour === 24 ? 0 : hour}:00
-            </p>
-          </div>
-        );
-      })}
-    </div>
-  );
-};
 
 const getDaysInMonth = (date: Date) => {
   const startOfMonthDate = startOfMonth(date);

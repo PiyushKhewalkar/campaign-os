@@ -36,6 +36,14 @@ const CampaignForm = () => {
       setError("Please select both start and end dates.")
       return
     }
+    if (step === 1 && formData.startDate && formData.endDate) {
+      const startDate = new Date(formData.startDate)
+      const endDate = new Date(formData.endDate)
+      if (startDate > endDate) {
+        setError("Start date cannot be after end date.")
+        return
+      }
+    }
     if (step === 2 && formData.platforms.length === 0) {
       setError("Please select at least one platform.")
       return
