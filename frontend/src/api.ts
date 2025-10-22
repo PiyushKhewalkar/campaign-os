@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.API_BASE_URL as string;
 
 export interface User {
   id: string;
