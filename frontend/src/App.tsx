@@ -1,15 +1,16 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import Login from './pages/auth/login';
-import Signup from './pages/auth/signup';
+import Login from './pages/auth/Login';
+import Signup from './pages/auth/Signup';
 import Home from './pages/Home';
 import Campaigns from './pages/Campaigns';
 import CampaignForm from './pages/CampaignForm';
 import CampaignDetails from './pages/CampaignDetails';
 import Post from './pages/Post';
 import UserProfile from './pages/UserProfile';
-import Nav from './components/Nav';
+import CalendarPage from './pages/Calendar';
+import Navigation from './components/Navigation';
 
 function App() {
   return (
@@ -24,20 +25,16 @@ function App() {
             {/* Protected routes */}
             <Route path="/" element={
               <ProtectedRoute>
-               <>
-      <div className='mx-5'>
-        <Nav />
-        <Home />
-      </div>
-      </>
+                <Navigation>
+                  <Home />
+                </Navigation>
               </ProtectedRoute>
             } />
             <Route path="/campaigns" element={
               <ProtectedRoute>
-                <div className='mx-5'>
-        <Nav />
-        <Campaigns />
-      </div>
+                <Navigation>
+                  <Campaigns />
+                </Navigation>
               </ProtectedRoute>
             } />
             <Route path="/campaigns/new" element={
@@ -45,18 +42,31 @@ function App() {
         <CampaignForm />
               </ProtectedRoute>
             } />
-            
-            <Route path="/campaigns/:campaignId" element={
+            <Route path="/campaigns/create" element={
               <ProtectedRoute>
-                      <div className='mx-5'>
-        <Nav />
-        <CampaignDetails />
-      </div>
+        <CampaignForm />
               </ProtectedRoute>
             } />
-            <Route path="/post" element={
+
+            <Route path="/campaigns/:campaignId" element={
               <ProtectedRoute>
-                <Post />
+                      <Navigation>
+                        <CampaignDetails />
+                      </Navigation>
+              </ProtectedRoute>
+            } />
+            <Route path="/posts/:postId" element={
+              <ProtectedRoute>
+                <Navigation>
+                  <Post />
+                </Navigation>
+              </ProtectedRoute>
+            } />
+            <Route path="/calendar" element={
+              <ProtectedRoute>
+                <Navigation>
+                  <CalendarPage />
+                </Navigation>
               </ProtectedRoute>
             } />
             <Route path="/profile" element={

@@ -35,6 +35,13 @@ const Home: React.FC = () => {
     setCampaigns(prevCampaigns => prevCampaigns.filter(c => c._id !== campaignId));
   };
 
+  // Handle campaign update
+  const handleCampaignUpdated = (updatedCampaign: Campaign) => {
+    setCampaigns(prevCampaigns => 
+      prevCampaigns.map(c => c._id === updatedCampaign._id ? updatedCampaign : c)
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto">
@@ -46,6 +53,7 @@ const Home: React.FC = () => {
               isLoading={isLoading} 
               error={error}
               onCampaignDeleted={handleCampaignDeleted}
+              onCampaignUpdated={handleCampaignUpdated}
             />
           </div>
         </div>

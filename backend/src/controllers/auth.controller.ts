@@ -3,6 +3,7 @@ import type { NextFunction, Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import { firebaseAdminAuth } from "../services/firebase.js";
 
 dotenv.config();
 
@@ -91,6 +92,47 @@ export const verifyEmail = async (req: Request, res: Response, next: NextFunctio
     res.status(200).json({ message: "Email verified successfully" });
   } catch (err) {
     console.error("Verification error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Google sign-in using Firebase ID token
+export const signInWithGoogle = async (req: Request, res: Response) => {
+  try {
+    const { idToken } = req.body as { idToken?: string };
+    if (!idToken) {
+      return res.status(400).json({ message: "idToken is required" });
+    }
+
+    const decoded = await firebaseAdminAuth.verifyIdToken(idToken);
+    const email = decoded.email;
+    if (!email) {
+      return res.status(400).json({ message: "No email on Google account" });
+    }
+
+    let user = await User.findOne({ email });
+    if (!user) {
+      user = await User.create({
+        email,
+        password: await bcrypt.hash(Math.random().toString(36).slice(-12), 10),
+        isVerified: true,
+      });
+    }
+
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      throw new Error("JWT_SECRET not defined in environment variables");
+    }
+
+    const token = jwt.sign({ id: user._id, email: user.email }, secret, { expiresIn: "7d" });
+
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user: { id: user._id, email: user.email, isVerified: true },
+    });
+  } catch (err) {
+    console.error("Google sign-in error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };

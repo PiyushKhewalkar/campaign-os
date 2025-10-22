@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { authAPI, getAuthToken, setAuthToken, removeAuthToken, getUserData, setUserData, removeUserData, validateToken, isTokenExpired, type User, type SignupData, type SigninData } from '../api';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { firebaseAuth } from '@/firebase';
 
 interface AuthContextType {
   user: User | null;
@@ -10,6 +12,7 @@ interface AuthContextType {
   signout: () => void;
   error: string | null;
   clearError: () => void;
+  googleSignin: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -149,6 +152,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signout,
     error,
     clearError,
+    googleSignin: async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const provider = new GoogleAuthProvider();
+        const result = await signInWithPopup(firebaseAuth, provider);
+        const idToken = await result.user.getIdToken();
+        const response = await authAPI.signinWithGoogle(idToken);
+        if (response.token && response.user) {
+          setAuthToken(response.token);
+          setUser(response.user);
+          setUserData(response.user);
+        }
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Google sign-in failed';
+        setError(errorMessage);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
   };
 
   return React.createElement(

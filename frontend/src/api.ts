@@ -36,8 +36,15 @@ export interface Campaign {
 }
 
 export interface Post {
-    _id: string,
-    script: object
+    _id: string;
+    userId: string;
+    campaignId: string;
+    platform: string;
+    script: any[];
+    scheduled_on?: string;
+    status: "draft" | "scheduled" | "published" | "failed";
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface CreateCampaignData {
@@ -54,6 +61,10 @@ export interface UpdateCampaignData {
   startDate?: string;
   endDate?: string;
   platforms?: string[];
+}
+
+export interface UpdatePostData {
+  script?: any[];
 }
 
 // Auth API functions
@@ -107,6 +118,24 @@ export const authAPI = {
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || 'Email verification failed');
+    }
+
+    return response.json();
+  },
+
+  // Sign in with Google (Firebase ID token -> backend verifies -> returns app JWT)
+  signinWithGoogle: async (idToken: string): Promise<AuthResponse> => {
+    const response = await fetch(`${API_BASE_URL}/auth/google`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ idToken }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Google sign-in failed');
     }
 
     return response.json();
@@ -226,6 +255,27 @@ export const campaignAPI = {
 };
 
 export const postAPI = {
+  // Get a single post by id
+  getPost: async (postId: string): Promise<{ success: boolean; post: Post }> => {
+    const token = getAuthToken();
+    if (!token) throw new Error('No authentication token found');
+
+    const response = await fetch(`${API_BASE_URL}/post/id/${postId}`,
+    {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to fetch post');
+    }
+
+    return response.json();
+  },
 
       // Get all posts for the campaign
   getAllPosts: async (campaignId: string): Promise<{ success: boolean; posts: Post[] }> => {
@@ -243,6 +293,113 @@ export const postAPI = {
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || 'Failed to fetch posts');
+    }
+
+    return response.json();
+  },
+
+  // Schedule a post
+  schedulePost: async (postId: string, scheduledDate: string): Promise<{ success: boolean; post: Post }> => {
+    const token = getAuthToken();
+    if (!token) throw new Error('No authentication token found');
+
+    const response = await fetch(`${API_BASE_URL}/post/${postId}/schedule`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ scheduledDate }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to schedule post');
+    }
+
+    return response.json();
+  },
+
+  // Generate posts for a campaign
+  generatePosts: async (campaignId: string): Promise<{ message: string; posts: Post[] }> => {
+    const token = getAuthToken();
+    if (!token) throw new Error('No authentication token found');
+
+    const response = await fetch(`${API_BASE_URL}/post/${campaignId}/generate`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to generate posts');
+    }
+
+    return response.json();
+  },
+
+  // Update a post
+  updatePost: async (postId: string, data: UpdatePostData): Promise<{ success: boolean; post: Post }> => {
+    const token = getAuthToken();
+    if (!token) throw new Error('No authentication token found');
+
+    const response = await fetch(`${API_BASE_URL}/post/${postId}/update`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to update post');
+    }
+
+    return response.json();
+  },
+
+  // Delete a post
+  deletePost: async (postId: string): Promise<{ success: boolean; deletedPost: Post }> => {
+    const token = getAuthToken();
+    if (!token) throw new Error('No authentication token found');
+
+    const response = await fetch(`${API_BASE_URL}/post/${postId}/delete`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to delete post');
+    }
+
+    return response.json();
+  },
+
+  // Get all scheduled posts for calendar view
+  getAllScheduledPosts: async (): Promise<{ success: boolean; posts: Post[] }> => {
+    const token = getAuthToken();
+    if (!token) throw new Error('No authentication token found');
+
+    const response = await fetch(`${API_BASE_URL}/post/scheduled/all`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to fetch scheduled posts');
     }
 
     return response.json();
