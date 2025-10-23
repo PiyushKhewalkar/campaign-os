@@ -29,7 +29,7 @@ social-media-management/
 ├── frontend/                 # React frontend application
 │   ├── src/
 │   │   ├── components/       # Reusable UI components
-│   │   │   ├── ui/          # Base UI components (Radix UI)
+│   │   │   ├── ui/          # Base UI components (shadCN UI)
 │   │   │   ├── CalendarPreview.tsx
 │   │   │   ├── CampaignEditDialog.tsx
 │   │   │   ├── CampaignList.tsx
