@@ -294,7 +294,7 @@ const CampaignList = ({ campaigns = [], isLoading = false, error = null, onCampa
                     </div>
                 ) : (
                     <div className="flex justify-center">
-                        <Button variant={"ghost"} className="">view all campaigns</Button>
+                        <Button variant={"ghost"} className="" onClick={() => navigate("/campaigns")}>view all campaigns</Button>
                     </div>
                 )}
                 </>
