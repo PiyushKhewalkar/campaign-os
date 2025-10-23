@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import { useNavigate } from "react-router-dom"
-import { campaignAPI } from "@/api"
+import { campaignAPI } from "@/utils/api"
+import { showToast } from "@/utils/toast"
 
 const platformsList = [
   { id: "x", name: "X (Twitter)" },
@@ -77,13 +78,15 @@ const CampaignForm = () => {
     setIsSubmitting(true)
     setError("")
     try {
-      // simulate API call
       const response = await campaignAPI.createCampaign(formData)
       console.log("✅ Campaign Created:", response)
+      showToast.campaignCreated()
       navigate(`/campaigns`) // redirect
     } catch (err) {
       console.error(err)
-      setError("Failed to create campaign. Try again.")
+      const errorMessage = err instanceof Error ? err.message : "Failed to create campaign. Try again."
+      setError(errorMessage)
+      showToast.error("Failed to create campaign", "Please try again")
     } finally {
       setIsSubmitting(false)
     }

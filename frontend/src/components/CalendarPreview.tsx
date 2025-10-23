@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { postAPI, type Post } from '@/api';
+import { postAPI, type Post } from '@/utils/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, ChevronRight } from 'lucide-react';

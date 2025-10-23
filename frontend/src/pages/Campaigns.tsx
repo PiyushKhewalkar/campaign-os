@@ -4,10 +4,11 @@ import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogTitle, 
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import SearchBar from '@/components/Searchbar';
-import { campaignAPI, type Campaign } from '../api';
+import { campaignAPI, type Campaign } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react"
 import CampaignEditDialog from "@/components/CampaignEditDialog"
+import { showToast } from '../utils/toast';
 
 
 const Campaigns: React.FC = () => {
@@ -37,7 +38,14 @@ const truncateDescription = (description: string | undefined, maxLength: number 
         setCampaigns(response.campaigns);
       } catch (err) {
         console.error('Error fetching campaigns:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch campaigns');
+        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch campaigns';
+        setError(errorMessage);
+        // Only show toast for genuine errors, not for empty results
+        if (errorMessage.toLowerCase().includes('no campaigns') || errorMessage.toLowerCase().includes('not found')) {
+          // This is expected for new users - don't show error toast
+        } else {
+          showToast.error(errorMessage, undefined, 'campaigns');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -52,9 +60,10 @@ const truncateDescription = (description: string | undefined, maxLength: number 
     setCampaigns(prevCampaigns => prevCampaigns.filter(c => c._id !== campaign._id))
     try {
         await campaignAPI.deleteCampaign(campaign._id);
+        showToast.campaignDeleted();
     } catch (error) {
         console.error("Error deleting campaign:", error);
-        alert("Failed to delete campaign. Restoring.");
+        showToast.error("Failed to delete campaign", "Please try again");
         setCampaigns(prev)
     }
 };

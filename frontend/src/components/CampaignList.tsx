@@ -1,10 +1,11 @@
 import UniversalHeader from "./UniversalHeader"
 import SearchBar from "./Searchbar"
 import { Button } from "./ui/button"
-import { campaignAPI } from "../api"
-import type { Campaign } from "../api"
+import { campaignAPI } from "../utils/api"
+import type { Campaign } from "../utils/api"
 import { useNavigate } from "react-router-dom"
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react"
+import { showToast } from "../utils/toast"
 
 import {
     DropdownMenu,
@@ -65,9 +66,10 @@ const CampaignList = ({ campaigns = [], isLoading = false, error = null, onCampa
         if (onCampaignDeleted) onCampaignDeleted(campaign._id)
         try {
             await campaignAPI.deleteCampaign(campaign._id);
+            showToast.campaignDeleted();
         } catch (error) {
             console.error("Error deleting campaign:", error);
-            alert("Failed to delete campaign. Restoring.");
+            showToast.error("Failed to delete campaign", "Please try again");
             // best-effort restore callback
             rollback()
         }

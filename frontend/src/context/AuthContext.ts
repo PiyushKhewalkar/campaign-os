@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { authAPI, getAuthToken, setAuthToken, removeAuthToken, getUserData, setUserData, removeUserData, isTokenExpired, type User, type SignupData, type SigninData } from '../api';
+import { authAPI, getAuthToken, setAuthToken, removeAuthToken, getUserData, setUserData, removeUserData, isTokenExpired, type User, type SignupData, type SigninData } from '../utils/api';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { firebaseAuth } from '@/firebase';
+import { showToast } from '../utils/toast';
 
 interface AuthContextType {
   user: User | null;
@@ -92,10 +93,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.user) {
         setUser(response.user);
         setUserData(response.user);
+        showToast.authSuccess('signup');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Signup failed';
       setError(errorMessage);
+      showToast.authError(errorMessage);
       throw err;
     } finally {
       setIsLoading(false);
@@ -113,10 +116,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setAuthToken(response.token);
         setUser(response.user);
         setUserData(response.user);
+        showToast.authSuccess('signin');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Signin failed';
       setError(errorMessage);
+      showToast.authError(errorMessage);
       throw err;
     } finally {
       setIsLoading(false);
@@ -128,6 +133,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     removeAuthToken();
     removeUserData();
     setError(null);
+    showToast.authSuccess('signout');
   };
 
   const clearError = () => {
@@ -141,6 +147,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     removeAuthToken();
     removeUserData();
     setError('Session expired. Please sign in again.');
+    showToast.warning('Session expired', 'Please sign in again to continue.');
   };
 
   const value: AuthContextType = {
@@ -164,10 +171,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setAuthToken(response.token);
           setUser(response.user);
           setUserData(response.user);
+          showToast.authSuccess('signin');
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Google sign-in failed';
         setError(errorMessage);
+        showToast.authError(errorMessage);
         throw err;
       } finally {
         setIsLoading(false);

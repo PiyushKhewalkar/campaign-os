@@ -11,6 +11,7 @@ import Post from './pages/Post';
 import UserProfile from './pages/UserProfile';
 import CalendarPage from './pages/Calendar';
 import Navigation from './components/Navigation';
+import { Toaster } from './components/ui/sonner';
 
 function App() {
   return (
@@ -79,6 +80,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
+        <Toaster />
       </Router>
     </AuthProvider>
   );

@@ -10,7 +10,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog"
-import { postAPI, type Post, type UpdatePostData } from "../api"
+import { postAPI, type Post, type UpdatePostData } from "../utils/api"
+import { showToast } from "../utils/toast"
 
 interface PostEditDialogProps {
   post: Post | null
@@ -77,10 +78,15 @@ const PostEditDialog = ({ post, isOpen, onClose, onSuccess }: PostEditDialogProp
       // sync with server
       const response = await postAPI.updatePost(post._id, updateData)
       // ensure parent has the server copy (could be same)
-      onSuccess(response.post)
+      if (response.post) {
+        onSuccess(response.post)
+      }
+      showToast.postUpdated()
     } catch (error) {
       console.error("Error updating post:", error)
-      setError("Failed to update post. Please try again.")
+      const errorMessage = error instanceof Error ? error.message : "Failed to update post. Please try again."
+      setError(errorMessage)
+      showToast.error("Failed to update post", "Please try again")
     } finally {
       setIsLoading(false)
     }

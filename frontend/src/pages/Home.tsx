@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import CampaignList from '../components/CampaignList';
 import Greeting from '@/components/Greeting';
-import { campaignAPI, type Campaign } from '../api';
+import { campaignAPI, type Campaign } from '../utils/api';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import CalendarPreview from '@/components/CalendarPreview';
 import UniversalHeader from '@/components/UniversalHeader';
+import { showToast } from '../utils/toast';
 
 const Home: React.FC = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -26,7 +27,14 @@ const Home: React.FC = () => {
         setCampaigns(response.campaigns);
       } catch (err) {
         console.error('Error fetching campaigns:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch campaigns');
+        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch campaigns';
+        setError(errorMessage);
+        // Only show toast for genuine errors, not for empty results
+        if (errorMessage.toLowerCase().includes('no campaigns') || errorMessage.toLowerCase().includes('not found')) {
+          // This is expected for new users - don't show error toast
+        } else {
+          showToast.error(errorMessage, undefined, 'campaigns');
+        }
       } finally {
         setIsLoading(false);
       }

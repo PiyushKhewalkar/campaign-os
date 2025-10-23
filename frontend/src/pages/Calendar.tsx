@@ -14,6 +14,7 @@ import {
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { showToast } from '../utils/toast';
 
 const CalendarPage: React.FC = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -46,7 +47,7 @@ const CalendarPage: React.FC = () => {
       setError(null);
       
       // Get all scheduled posts directly from the new API endpoint
-      const { postAPI } = await import('@/api');
+      const { postAPI } = await import('@/utils/api');
       const response = await postAPI.getAllScheduledPosts();
       const scheduledPosts = response.posts;
 
@@ -80,7 +81,14 @@ const CalendarPage: React.FC = () => {
       setCurrentPage(page);
     } catch (err) {
       console.error('Error fetching scheduled posts:', err);
-      setError('Failed to load scheduled posts');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load scheduled posts';
+      setError(errorMessage);
+      // Only show toast for genuine errors, not for empty results
+      if (errorMessage.toLowerCase().includes('no posts') || errorMessage.toLowerCase().includes('not found')) {
+        // This is expected for users without scheduled posts - don't show error toast
+      } else {
+        showToast.error(errorMessage, undefined, 'posts');
+      }
     } finally {
       setLoading(false);
       setIsLoadingMore(false);

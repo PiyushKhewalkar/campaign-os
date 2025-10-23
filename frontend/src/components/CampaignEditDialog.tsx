@@ -11,7 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog"
-import { campaignAPI, type Campaign, type UpdateCampaignData } from "../api"
+import { campaignAPI, type Campaign, type UpdateCampaignData } from "../utils/api"
+import { showToast } from "../utils/toast"
 
 interface CampaignEditDialogProps {
   campaign: Campaign | null
@@ -67,10 +68,13 @@ const CampaignEditDialog = ({ campaign, isOpen, onClose, onSuccess }: CampaignEd
 
       const response = await campaignAPI.updateCampaign(campaign._id, updateData)
       onSuccess(response.updatedCampaign)
+      showToast.campaignUpdated()
       onClose()
     } catch (error) {
       console.error("Error updating campaign:", error)
-      setError("Failed to update campaign. Please try again.")
+      const errorMessage = error instanceof Error ? error.message : "Failed to update campaign. Please try again."
+      setError(errorMessage)
+      showToast.error("Failed to update campaign", "Please try again")
     } finally {
       setIsLoading(false)
     }

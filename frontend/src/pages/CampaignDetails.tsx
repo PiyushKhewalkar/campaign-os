@@ -4,7 +4,8 @@ import { useParams } from "react-router-dom"
 import { MoreHorizontal, Calendar, Clock, Edit, Trash2 } from "lucide-react"
 import { Button } from "../components/ui/button"
 import { Link } from "react-router-dom"
-import { campaignAPI, postAPI, type Post, type Campaign } from "@/api"
+import { campaignAPI, postAPI, type Post, type Campaign } from "@/utils/api"
+import { showToast } from "../utils/toast"
 import { 
     Breadcrumb, 
     BreadcrumbItem, 
@@ -51,10 +52,19 @@ const CampaignDetails = () => {
     const getAllPosts = async() => {
         if (!campaignId) return
 
-
+        try {
             const response = await postAPI.getAllPosts(campaignId)
             setPosts(response.posts)
-       
+        } catch (error) {
+            console.error('Error fetching posts:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to fetch posts';
+            // Only show toast for genuine errors, not for empty results
+            if (errorMessage.toLowerCase().includes('no posts') || errorMessage.toLowerCase().includes('not found')) {
+                // This is expected for campaigns without posts - don't show error toast
+            } else {
+                showToast.error(errorMessage, undefined, 'posts');
+            }
+        }
     }
 
     const handleSchedulePost = async (date: string) => {
@@ -82,9 +92,11 @@ const CampaignDetails = () => {
             await postAPI.schedulePost(scheduleDialog.postId, date)
             setScheduleDialog({ isOpen: false, postId: "", currentDate: undefined })
             setError("") // Clear any previous errors
+            showToast.postScheduled()
         } catch (error) {
             console.error("Error scheduling post:", error)
             setError("Failed to schedule post")
+            showToast.error("Failed to schedule post", "Please try again")
             // rollback
             setPosts(prevPosts)
         }
@@ -103,7 +115,9 @@ const CampaignDetails = () => {
     };
 
     const handleEditSuccess = (updatedPost: Post) => {
-        setPosts(prev => prev.map(p => p._id === updatedPost._id ? updatedPost : p));
+        if (updatedPost && updatedPost._id) {
+            setPosts(prev => prev.map(p => p._id === updatedPost._id ? updatedPost : p));
+        }
         setEditDialog({ isOpen: false, post: null });
     };
 
@@ -113,9 +127,10 @@ const CampaignDetails = () => {
         setPosts(prev => prev.filter(p => p._id !== post._id))
         try {
             await postAPI.deletePost(post._id)
+            showToast.postDeleted()
         } catch (error) {
             console.error("Error deleting post:", error)
-            alert("Failed to delete post. Restoring.")
+            showToast.error("Failed to delete post", "Please try again")
             // rollback
             setPosts(prevPosts)
         }
@@ -126,12 +141,14 @@ const CampaignDetails = () => {
         
         setLoading(true)
         try {
-            await postAPI.generatePosts(campaignId)
+            const response = await postAPI.generatePosts(campaignId)
             // Refresh posts to show the newly generated ones
             await getAllPosts()
+            showToast.postsGenerated(response.posts.length)
         } catch (error) {
             console.error("Error generating posts:", error)
             setError("Failed to generate posts")
+            showToast.error("Failed to generate posts", "Please try again")
         } finally {
             setLoading(false)
         }
@@ -150,7 +167,9 @@ const CampaignDetails = () => {
                 setCampaign(campaignData.campaign)
             } catch (error) {
                 console.error("Error fetching campaign:", error)
-                setError("Failed to load campaign")
+                const errorMessage = error instanceof Error ? error.message : "Failed to load campaign"
+                setError(errorMessage)
+                showToast.error(errorMessage)
             } finally {
                 setLoading(false)
             }

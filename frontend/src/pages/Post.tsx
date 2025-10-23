@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { postAPI, type Post as PostType } from '@/api';
+import { postAPI, type Post as PostType } from '@/utils/api';
 import { Button } from '@/components/ui/button';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 
