@@ -7,6 +7,7 @@ import {
   instagram_post_format, 
   reddit_post_format 
 } from "../utils/responseformats.js";
+import { getPlatformInstructions, getSystemPrompt, getUserPrompt } from "../utils/prompts.js";
 
 dotenv.config();
 
@@ -31,24 +32,36 @@ const getPlatformFormat = (platform: string) => {
     case "reddit":
       return reddit_post_format;
     default:
-      return x_post_format; // Default to X format
+      return x_post_format;
   }
 };
 
-// Helper function to get platform-specific prompt instructions
-const getPlatformInstructions = (platform: string) => {
-  switch (platform) {
-    case "x":
-      return "Create engaging Twitter/X posts with concise text (280 characters max). Focus on trending topics, hashtags, and viral content.";
-    case "linkedin":
-      return "Create professional LinkedIn posts with valuable insights, industry knowledge, and professional networking content. Include both text and media descriptions.";
-    case "instagram":
-      return "Create Instagram posts with engaging captions and visual descriptions. Focus on storytelling, aesthetics, and visual appeal.";
-    case "reddit":
-      return "Create Reddit posts with compelling titles and detailed body content. Focus on community engagement, discussions, and valuable information.";
-    default:
-      return "Create engaging social media content.";
-  }
+// Helper function to generate a single post for a platform
+const generateSinglePost = async (
+  campaign: any,
+  platform: string
+): Promise<any> => {
+  const platformInstructions = getPlatformInstructions(platform);
+  const platformFormat = getPlatformFormat(platform);
+  
+  const response = await openai.responses.parse({
+    model: "gpt-4o-mini",
+    input: [
+      {
+        role: "system",
+        content: getSystemPrompt(platform, platformInstructions),
+      },
+      {
+        role: "user",
+        content: getUserPrompt(campaign, platform),
+      },
+    ],
+    text: {
+      format: zodTextFormat(platformFormat, "post"),
+    },
+  });
+
+  return response.output_parsed;
 };
 
 export const generatePostsService = async (
@@ -65,47 +78,15 @@ export const generatePostsService = async (
     console.log(`Posts per platform: ${postsPerPlatform}`);
     
     for (const platform of platforms) {
-      const platformFormat = getPlatformFormat(platform);
-      const platformInstructions = getPlatformInstructions(platform);
       console.log(`Generating posts for ${platform}...`);
       
       // Generate posts for this platform
       for (let i = 0; i < postsPerPlatform; i++) {
         try {
           console.log(`Generating ${platform} post ${i + 1}/${postsPerPlatform}`);
-          const response = await openai.responses.parse({
-            model: "gpt-4o-2024-08-06",
-            input: [
-              {
-                role: "system",
-                content: `You are a social media content creator specializing in ${platform} posts. 
-                
-                ${platformInstructions}
-                
-                Create content based on the campaign information provided. Make sure the content is:
-                - Engaging and relevant to the target audience
-                - Appropriate for the ${platform} platform
-                - Aligned with the campaign goals
-                - Original and creative`,
-              },
-              {
-                role: "user",
-                content: `Campaign Information:
-                Title: ${campaign.title}
-                Description: ${campaign.description}
-                Start Date: ${campaign.startDate}
-                End Date: ${campaign.endDate}
-                Platforms: ${campaign.platforms.join(", ")}
-                
-                Create a ${platform} post for this campaign. Make it engaging and platform-appropriate.`,
-              },
-            ],
-            text: {
-              format: zodTextFormat(platformFormat, "post"),
-            },
-          });
-
-          const result = response.output_parsed;
+          
+          const result = await generateSinglePost(campaign, platform);
+          
           if (result) {
             posts.push({
               platform: platform,

@@ -1,6 +1,6 @@
 import Campaign from "../models/campaign.model.js";
 import Post from "../models/post.model.js";
-import type { NextFunction, Request, Response } from "express";
+import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../middleware/auth.middleware.js";
 
 export const getAllCampaigns = async(req: AuthRequest, res: Response, next: NextFunction) => {
