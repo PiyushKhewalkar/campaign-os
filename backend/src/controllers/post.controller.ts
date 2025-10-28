@@ -68,7 +68,6 @@ export const generatePosts = async (req: AuthRequest, res: Response, next: NextF
             campaignId: campaign._id,
             platform: post.platform,
             script: post.script,
-            // store date-only (start of day)
             scheduled_on: campaign.startDate ? new Date(new Date(campaign.startDate).setHours(0,0,0,0)) : undefined,
             userId: req.user?.id,
           })

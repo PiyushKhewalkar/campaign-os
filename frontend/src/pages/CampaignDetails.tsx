@@ -239,7 +239,7 @@ const CampaignDetails = () => {
                             const scheduledDate = post.scheduled_on ? new Date(post.scheduled_on) : null
                             
                             return (
-                                <div key={post._id} className="break-inside-avoid mb-4 border rounded-lg p-4 space-y-3">
+                                <div key={post._id} className="masonry-item mb-4 border rounded-lg p-4 space-y-3 bg-card">
                                     <div className="flex justify-between items-start">
                                         <div className="flex items-center space-x-3">
                                             <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
