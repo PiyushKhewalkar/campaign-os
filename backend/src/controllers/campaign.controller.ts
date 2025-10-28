@@ -43,8 +43,6 @@ export const createCampaign = async(req: AuthRequest, res: Response, next: NextF
 
         const {title, description, startDate, endDate, platforms} = req.body
 
-        // input validation (NEED)
-
         const newCampaign = new Campaign({
             title, description, startDate, endDate, platforms, userId: req.user?.id
         })

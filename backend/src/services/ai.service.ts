@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { zodTextFormat } from "openai/helpers/zod";
 import dotenv from "dotenv";
 import { 
   x_post_format, 
@@ -72,9 +73,9 @@ export const generatePostsService = async (
       for (let i = 0; i < postsPerPlatform; i++) {
         try {
           console.log(`Generating ${platform} post ${i + 1}/${postsPerPlatform}`);
-          const response = await openai.chat.completions.create({
-            model: "gpt-4o-mini",
-            messages: [
+          const response = await openai.responses.parse({
+            model: "gpt-4o-2024-08-06",
+            input: [
               {
                 role: "system",
                 content: `You are a social media content creator specializing in ${platform} posts. 
@@ -85,9 +86,7 @@ export const generatePostsService = async (
                 - Engaging and relevant to the target audience
                 - Appropriate for the ${platform} platform
                 - Aligned with the campaign goals
-                - Original and creative
-                
-                Return your response as a valid JSON object following the exact format requirements for ${platform} posts.`,
+                - Original and creative`,
               },
               {
                 role: "user",
@@ -98,37 +97,21 @@ export const generatePostsService = async (
                 End Date: ${campaign.endDate}
                 Platforms: ${campaign.platforms.join(", ")}
                 
-                Create a ${platform} post for this campaign. Make it engaging and platform-appropriate.
-                
-                Return the response as a JSON object with the following structure:
-                ${platform === "x" ? '{"text": "your post content here"}' : 
-                 platform === "linkedin" ? '{"text": "your post content", "media_description": "description of media"}' :
-                 platform === "instagram" ? '{"caption": "your caption", "media_description": "description of media"}' :
-                 platform === "reddit" ? '{"title": "your title", "body": "your post body", "media_description": "description of media"}' :
-                 '{"text": "your post content"}'}`,
+                Create a ${platform} post for this campaign. Make it engaging and platform-appropriate.`,
               },
             ],
-            response_format: { type: "json_object" },
+            text: {
+              format: zodTextFormat(platformFormat, "post"),
+            },
           });
 
-          const content = response.choices[0]?.message?.content;
-          if (content) {
-            try {
-              const result = JSON.parse(content);
-              // Validate the result against the platform format
-              const validationResult = platformFormat.safeParse(result);
-              if (validationResult.success) {
-                posts.push({
-                  platform: platform,
-                  script: validationResult.data
-                });
-                console.log(`Successfully generated ${platform} post ${i + 1}`);
-              } else {
-                console.error(`Invalid format for ${platform} post:`, validationResult.error);
-              }
-            } catch (parseError) {
-              console.error(`Failed to parse JSON for ${platform} post:`, parseError);
-            }
+          const result = response.output_parsed;
+          if (result) {
+            posts.push({
+              platform: platform,
+              script: result
+            });
+            console.log(`Successfully generated ${platform} post ${i + 1}`);
           }
         } catch (error) {
           console.error(`Error generating ${platform} post:`, error);
